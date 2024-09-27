@@ -11,6 +11,7 @@ module List.Nonempty exposing
     , zip, unzip
     , sort, sortBy, sortWith
     , dedup, uniq
+    , consumeWith
     , fromElement
     )
 
@@ -82,6 +83,11 @@ To fold or scan from the right, reverse the list first.
 The nonempty list's elements must support equality (e.g. not functions). Otherwise you will get a runtime error.
 
 @docs dedup, uniq
+
+
+# Consumption
+
+@docs consumeWith
 
 
 # Deprecated
@@ -548,3 +554,27 @@ unzip (Nonempty ( x, y ) rest) =
             List.unzip rest
     in
     ( Nonempty x xs, Nonempty y ys )
+
+
+{-| Use a non-empty list as arguments for functions with the type signature `a -> List a -> Something`, such as `Random.weighted`. This is designed to be used in a pipe style.
+
+    import Random
+
+    type PrizeMoneyInDollars
+        = PrizeMoneyInDollars Int
+
+    lotteryGenerator : Random.Generator Int
+    lotteryGenerator =
+        Nonempty 1 [ 2, 3, 4, 5 ]
+            |> Nonempty.map
+                (\i ->
+                    ( toFloat (10 ^ i)
+                    , PrizeMoneyInDollars (10 ^ (6 - i))
+                    )
+                )
+            |> Nonempty.consumeWith Random.weighted
+
+-}
+consumeWith : (a -> List a -> b) -> Nonempty a -> b
+consumeWith func (Nonempty x xs) =
+    func x xs

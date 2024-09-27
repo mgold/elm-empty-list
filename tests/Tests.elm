@@ -250,6 +250,11 @@ testSuite =
                 NE.take n (NE.Nonempty x xs)
                     |> NE.toList
                     |> Expect.equalLists expectedResult
+        , fuzz2 int (list int) "consumeWith works." <|
+            \n ns ->
+                NE.Nonempty n ns
+                    |> NE.consumeWith NE.Nonempty
+                    |> Expect.equal (NE.Nonempty n ns)
         ]
 
 
